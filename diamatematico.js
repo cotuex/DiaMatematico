@@ -166,7 +166,7 @@ var computeMathematicDay = function (day, month, year) {
 
 var d = new Date();
 var date = d.getDate();
-var month = d.getMonth();
+var month = d.getMonth() + 1; //Offset the month to be computed correctly
 var year = d.getFullYear();
 
 computeMathematicDay(date, month, year).forEach(element => {
