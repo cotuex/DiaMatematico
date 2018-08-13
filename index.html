@@ -2,12 +2,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="cache-control" content="no-cache">
     <title>DiaMatematico</title>
     <link rel="stylesheet" href="style.min.css">
 </head>
 <body>
     <h1 id="Title">Día Matemático</h1>
-    <div id="container">
+    <div>
+        <input type="date" id="daySelector" onchange="onDateChange()">
         <pre id="content"></pre>
     </div>
 

@@ -34,6 +34,15 @@ var base10toN = function (number, base, paddingLength = 0) {
 };
 
 /**
+ * This function trims all ceros located on the left of the string
+ * @param {string} string 
+ * @returns {string} The String trimmed
+ */
+var lTrimZeros = function (string) {
+    return string.replace(/0+(?=\d)/g, "");
+}
+
+/**
  * 
  * @param {String} day 
  * @param {String} month 
@@ -115,61 +124,70 @@ var computeSubGroups = function* (array) {
  * @param {Array} array 
  */
 var computeOperators = function* (array) {
-    const operators = ["+", "-", "/", "*"];
+    const operators = ["+", "-", "/", "*", "**"];
+    const operatorsNeeded = array.length - 2;
+    //The 2 subtracting from the array.length is to make it fill the gaps between numbers and
+    //to take into account the "===" symbol
+    
+    var counter = operators.length ** (operatorsNeeded) - 1;
 
-    var solution = array.pop();
-
-    var counter = 4 ** (array.length - 1) - 1;
-
-    var lTrimZeros = function (string) {
-        return string.replace(/0+(?=\d)/g, "");
-    }
+    
 
     var stringToFormat = array.map((x) => {return lTrimZeros(x);}).join("{}");
 
-    for (var c = 0; c < counter + 1; c++) {
+    for (var c = 0; c <= counter; c++) {
         var operations = [];
-        
-        for (var o = 0; o < array.length - 1; o++) {
-            var baseNOperations = base10toN(c, operators.length, array.length - 1);
+        //Fills operations variable
+        for (var o = 0; o < operatorsNeeded; o++) {
+            var baseNOperations = base10toN(c, operators.length, operatorsNeeded); 
             operations.push(operators[baseNOperations[o]]);
         }
 
-        var stringToEval = stringToFormat.format(operations) + "===" + lTrimZeros(solution);
-        
-        var evaluation = eval(stringToEval);
+        for (var solutionsCounter = 0; solutionsCounter < operations.length + 1; solutionsCounter++) {
 
-        if(evaluation) {
-            yield array.join("{}").format(operations) + "=" + solution;
+            //Insert the "===" symbol into the operations array
+            operations.splice(solutionsCounter, 0, "===")
+
+            var stringToEval = stringToFormat.format(operations);
+
+            var evaluation = eval(stringToEval);
+
+            if (evaluation) {
+                yield array.join("{}").format(operations).replace("===","=");
+            }
+
+            //Delete the "===" symbol from the operations array to reinsert it again in the correct place next time
+            operations.splice(solutionsCounter, 1);
         }
+
     
     }
 }
 
-var computeMathematicDay = function (day, month, year) {
+var computeMathematicDay = function* (day, month, year) {
     var dates = computeVariationsOfTime(day.toString(), month.toString(), year.toString());
-    var set = new Set();
     for (var d of dates) {
         var subgroups = computeSubGroups(d);
         for (var s of subgroups) {
             var operators = computeOperators(s);
-
             for (var o of operators) {
-                set.add(o);
+                yield o;
             }
-
         }
     }
+}
 
-    return set;
+var onDateChange = function () {
+    // var _date = document.getElementById("daySelector").valueAsDate;
+    
+    content.innerHTML = "";
+
+    for (var mathDay of computeMathematicDay(d.getDate(), d.getMonth(), d.getFullYear())) {
+        content.innerHTML += mathDay + "\n";
+    }
 }
 
 var d = new Date();
-var date = d.getDate();
-var month = d.getMonth();
-var year = d.getFullYear();
 
-computeMathematicDay(date, month, year).forEach(element => {
-    document.getElementById("content").innerHTML += element + '\n';
-});
-
+document.getElementById("daySelector").valueAsDate = d;
+onDateChange();
